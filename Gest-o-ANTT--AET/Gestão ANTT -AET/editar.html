@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar AET - AET/ANTT Gestão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ESTILOS ESPECÍFICOS PARA FORMULÁRIO */
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+        }
+
+        .form-header {
+            margin-bottom: 30px;
+        }
+
+        .form-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #252525;
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 14px;
+            color: #64748B;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #252525;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #D0E1F9;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #252525;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #07356F;
+            box-shadow: 0 0 0 3px rgba(7, 53, 111, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .btn {
+            min-width: 140px;
+        }
+
+        .btn-secondary {
+            background-color: #E8F2FC;
+            color: #07356F;
+            border: 1px solid #D0E1F9;
+        }
+
+        .btn-secondary:hover {
+            background-color: #D0E1F9;
+        }
+
+        .required::after {
+            content: " *";
+            color: #D93636;
+        }
+
+        .form-error {
+            color: #D93636;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-error.show {
+            display: block;
+        }
+
+        .error input,
+        .error select,
+        .error textarea {
+            border-color: #D93636;
+        }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 24px;
+                margin: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-text">
+                    <div class="brand-line">AET/ANTT</div>
+                    <div class="brand-line">GESTÃO</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="index.html" class="menu-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
+                    </svg>
+                    <span>AETs</span>
+                </a>
+                <a href="clientes.html" class="menu-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Clientes</span>
+                </a>
+                <a href="veiculos.html" class="menu-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="7.5" cy="18" r="1.5"></circle><circle cx="16.5" cy="18" r="1.5"></circle></svg>
+                    <span>Veículos</span>
+                </a>
+                <a href="relatorios.html" class="menu-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Relatórios</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="menu-item logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="header">
+                <div class="search-container">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Buscar AET, cliente ou placa...">
+                </div>
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <div class="page-content">
+                <div class="form-container">
+                    <div class="form-header">
+                        <h1>Editar AET</h1>
+                        <p>Atualize as informações da Autorização Especial de Trânsito</p>
+                    </div>
+
+                    <form id="edicaoForm" onsubmit="submitForm(event)">
+                        <!-- CLIENTE -->
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="cliente" class="required">Cliente</label>
+                                <input type="text" id="cliente" name="cliente" placeholder="Nome completo da empresa" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <!-- UF E VENCIMENTO -->
+                        <div class="form-group form-row">
+                            <div>
+                                <label for="uf" class="required">UF/Órgão</label>
+                                <input type="text" id="uf" name="uf" placeholder="Ex: SP" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                            <div>
+                                <label for="vencimento" class="required">Data de Vencimento</label>
+                                <input type="date" id="vencimento" name="vencimento" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <!-- CAVALO E CARRETAS -->
+                        <div class="form-group form-row">
+                            <div>
+                                <label for="cavalo" class="required">Cavalo</label>
+                                <input type="text" id="cavalo" name="cavalo" placeholder="Ex: Caminhão Demonstração 01" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                            <div>
+                                <label for="carretas" class="required">Carretas</label>
+                                <input type="number" id="carretas" name="carretas" placeholder="Ex: 2" min="1" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <!-- COMPRIMENTO E CARROCERIA -->
+                        <div class="form-group form-row">
+                            <div>
+                                <label for="comprimento" class="required">Comprimento</label>
+                                <input type="text" id="comprimento" name="comprimento" placeholder="Ex: 17,50m" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                            <div>
+                                <label for="carroceria" class="required">Carroceria</label>
+                                <select id="carroceria" name="carroceria" required>
+                                    <option value="">Selecione o tipo de carroceria</option>
+                                    <option value="Graneleira">Graneleira</option>
+                                    <option value="Baú">Baú</option>
+                                    <option value="Tanque">Tanque</option>
+                                    <option value="Sider">Sider</option>
+                                    <option value="Plataforma">Plataforma</option>
+                                    <option value="Frigorífico">Frigorífico</option>
+                                </select>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <!-- NÚMERO AET -->
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="numeroAET" class="required">Número da AET</label>
+                                <input type="text" id="numeroAET" name="numeroAET" placeholder="Ex: 05269225-SP-2025" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="status" class="required">Status da AET</label>
+                                <select id="status" name="status" required>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Atenção">Atenção</option>
+                                    <option value="Alta prioridade">Alta prioridade</option>
+                                    <option value="Renovação em andamento">Renovação em andamento</option>
+                                    <option value="Renovada">Renovada</option>
+                                    <option value="Vencida">Vencida</option>
+                                </select>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <!-- OBSERVAÇÃO -->
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="observacao">Observação</label>
+                                <textarea id="observacao" name="observacao" placeholder="Adicione qualquer observação importante sobre esta AET..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                Salvar alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* DADOS FICTÍCIOS antigos, mantidos no arquivo apenas para preservar o histórico do projeto.
+        const AETdata = [
+            {
+                id: 1,
+                cliente: "EMPRESA DEMONSTRAÇÃO LOGÍSTICA",
+                numeroAET: "05269225-SP-2025",
+                placas: ["FIC1T01", "FIC1T02"],
+                vencimento: "31/08/2026",
+                vencimentoData: new Date(2026, 7, 31),
+                status: "Atenção",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 01",
+                carretas: "3",
+                comprimento: "17,50m",
+                carroceria: "Graneleira",
+                observacao: "Renovação com documento pendente"
+            },
+            {
+                id: 2,
+                cliente: "LOGÍSTICA BRASIL EXEMPLO LTDA",
+                numeroAET: "34979810-SP-2025",
+                placas: ["FIC1T03", "FIC1T04"],
+                vencimento: "31/08/2026",
+                vencimentoData: new Date(2026, 7, 31),
+                status: "Atenção",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 02",
+                carretas: "2",
+                comprimento: "15,00m",
+                carroceria: "Baú",
+                observacao: "Cliente aguardando agendamento"
+            },
+            {
+                id: 3,
+                cliente: "TRANSPORTADORA TESTE LTDA",
+                numeroAET: "3511850-SP-2025",
+                placas: ["FIC1T05", "FIC1T06"],
+                vencimento: "31/08/2026",
+                vencimentoData: new Date(2026, 7, 31),
+                status: "Atenção",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 03",
+                carretas: "2",
+                comprimento: "16,50m",
+                carroceria: "Tanque",
+                observacao: "Documentação incompleta"
+            },
+            {
+                id: 4,
+                cliente: "CARGAS EXEMPLO BRASIL",
+                numeroAET: "05269321-SP-2025",
+                placas: ["FIC1T07", "FIC1T08"],
+                vencimento: "30/04/2026",
+                vencimentoData: new Date(2026, 3, 30),
+                status: "Vencida",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 04",
+                carretas: "3",
+                comprimento: "18,00m",
+                carroceria: "Graneleira",
+                observacao: "Processo de renovação em andamento"
+            },
+            {
+                id: 5,
+                cliente: "FROTA MODELO LTDA",
+                numeroAET: "05269493-SP-2025",
+                placas: ["FIC1T09", "FIC1T10"],
+                vencimento: "30/04/2026",
+                vencimentoData: new Date(2026, 3, 30),
+                status: "Vencida",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 05",
+                carretas: "2",
+                comprimento: "15,50m",
+                carroceria: "Baú",
+                observacao: "Contato com cliente necessário"
+            },
+            {
+                id: 6,
+                cliente: "AGRO CARGAS DEMO",
+                numeroAET: "05269521-SP-2025",
+                placas: ["FIC2T01", "FIC2T02"],
+                vencimento: "15/09/2026",
+                vencimentoData: new Date(2026, 8, 15),
+                status: "Regular",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 06",
+                carretas: "3",
+                comprimento: "17,50m",
+                carroceria: "Graneleira",
+                observacao: "AET regular, sem pendências"
+            },
+            {
+                id: 7,
+                cliente: "TRANSPORTES MODELO AZUL",
+                numeroAET: "05269651-SP-2025",
+                placas: ["FIC2T03", "FIC2T04"],
+                vencimento: "10/10/2026",
+                vencimentoData: new Date(2026, 9, 10),
+                status: "Regular",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 07",
+                carretas: "2",
+                comprimento: "16,00m",
+                carroceria: "Baú",
+                observacao: "Documentação completa"
+            },
+            {
+                id: 8,
+                cliente: "COOPERATIVA TESTE LOGÍSTICO",
+                numeroAET: "05269733-SP-2025",
+                placas: ["FIC2T05", "FIC2T06"],
+                vencimento: "02/11/2026",
+                vencimentoData: new Date(2026, 10, 2),
+                status: "Regular",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 08",
+                carretas: "3",
+                comprimento: "18,50m",
+                carroceria: "Graneleira",
+                observacao: "AET em dia com todas as obrigações"
+            },
+            {
+                id: 9,
+                cliente: "ROTA FICTÍCIA TRANSPORTES",
+                numeroAET: "08147520-SP-2025",
+                placas: ["FIC2T07", "FIC2T08"],
+                vencimento: "25/11/2026",
+                vencimentoData: new Date(2026, 10, 25),
+                status: "Regular",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 09",
+                carretas: "2",
+                comprimento: "15,50m",
+                carroceria: "Sider",
+                observacao: "Renovação planejada para próximo mês"
+            },
+            {
+                id: 10,
+                cliente: "GRUPO DEMO ESTRADA",
+                numeroAET: "12365487-SP-2025",
+                placas: ["FIC2T09", "FIC2T10"],
+                vencimento: "08/12/2026",
+                vencimentoData: new Date(2026, 11, 8),
+                status: "Regular",
+                uf: "SP",
+                cavalo: "Caminhão Demonstração 10",
+                carretas: "3",
+                comprimento: "17,00m",
+                carroceria: "Tanque",
+                observacao: "Sem problemas identificados"
+            }
+        ]; */
+
+        // CARREGAR DADOS NA PÁGINA
+        document.addEventListener('DOMContentLoaded', () => {
+            const editAETId = localStorage.getItem('editAETId') || 1;
+            const aet = AETdata.find(a => a.id === parseInt(editAETId));
+
+            if (aet) {
+                document.getElementById('cliente').value = aet.cliente;
+                document.getElementById('uf').value = aet.uf;
+                document.getElementById('vencimento').value = formatDateToInput(aet.vencimento);
+                document.getElementById('cavalo').value = aet.cavalo;
+                document.getElementById('carretas').value = aet.carretas;
+                document.getElementById('comprimento').value = aet.comprimento;
+                document.getElementById('carroceria').value = aet.carroceria;
+                document.getElementById('numeroAET').value = aet.numeroAET;
+                document.getElementById('status').value = statusAET(aet);
+                document.getElementById('observacao').value = aet.observacao;
+            }
+        });
+
+        function formatDateToInput(dateStr) {
+            // Converte "31/08/2026" para "2026-08-31"
+            const [day, month, year] = dateStr.split('/');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+
+        // VALIDAÇÃO DO FORMULÁRIO
+        function submitForm(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('edicaoForm');
+            const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                const formGroup = input.closest('.form-group');
+                const errorDiv = formGroup.querySelector('.form-error');
+
+                if (!input.value.trim()) {
+                    formGroup.classList.add('error');
+                    errorDiv.classList.add('show');
+                    isValid = false;
+                } else {
+                    formGroup.classList.remove('error');
+                    errorDiv.classList.remove('show');
+                }
+            });
+
+            if (isValid) {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+
+                const aetId = Number(localStorage.getItem('editAETId'));
+                const aet = AETdata.find(item => item.id === aetId);
+                if (!aet) {
+                    showSuccessMessage('AET não encontrada.');
+                    return;
+                }
+
+                const statusAnterior = statusAET(aet);
+                Object.assign(aet, data, {
+                    id: aetId,
+                    clienteId: aet.clienteId,
+                    placas: aet.placas || [],
+                    vencimentoData: parseDataBR(data.vencimento.split('-').reverse().join('/')),
+                    carretas: String(data.carretas),
+                    statusManual: true
+                });
+                if (data.status === 'Renovação em andamento') {
+                    aet.renovacaoEm = formatarDataBR(hojeSemHora());
+                } else {
+                    delete aet.renovacaoEm;
+                }
+                if (data.status === 'Renovada') {
+                    aet.renovadaEm = formatarDataBR(hojeSemHora());
+                } else {
+                    delete aet.renovadaEm;
+                }
+                persistirAETs();
+
+                if (statusAnterior !== data.status) {
+                    registrarAlteracaoStatus(aet.id, statusAnterior, data.status);
+                }
+
+                // Mostrar mensagem de sucesso
+                showSuccessMessage(statusAnterior !== data.status
+                    ? 'Status da AET atualizado com sucesso.'
+                    : 'AET atualizada com sucesso!');
+
+                // Redirecionar após 2 segundos
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }
+        }
+
+        function showSuccessMessage(message) {
+            const messageEl = document.createElement('div');
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #22A559;
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(34, 165, 89, 0.2);
+                font-weight: 600;
+                z-index: 2000;
+                animation: slideIn 0.3s ease;
+            `;
+            messageEl.textContent = message;
+            document.body.appendChild(messageEl);
+
+            setTimeout(() => {
+                messageEl.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => messageEl.remove(), 300);
+            }, 3000);
+        }
+
+        // ADICIONAR ANIMAÇÕES
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    <script src="js/data.js"></script>
+</body>
+</html>

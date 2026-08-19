@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderClientes(buscaHeader.value);
     });
 });
+document.addEventListener('aet-data-ready', () => renderClientes(document.getElementById('client-search')?.value));
 
 // Resumo das AETs de um cliente
 function resumoCliente(clienteId) {

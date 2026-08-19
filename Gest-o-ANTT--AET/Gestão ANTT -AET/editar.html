@@ -506,7 +506,7 @@
         ]; */
 
         // CARREGAR DADOS NA PÁGINA
-        document.addEventListener('DOMContentLoaded', () => {
+        function carregarFormularioEdicao() {
             const editAETId = localStorage.getItem('editAETId') || 1;
             const aet = AETdata.find(a => a.id === parseInt(editAETId));
 
@@ -522,7 +522,9 @@
                 document.getElementById('status').value = statusAET(aet);
                 document.getElementById('observacao').value = aet.observacao;
             }
-        });
+        }
+        document.addEventListener('DOMContentLoaded', carregarFormularioEdicao);
+        document.addEventListener('aet-data-ready', carregarFormularioEdicao);
 
         function formatDateToInput(dateStr) {
             // Converte "31/08/2026" para "2026-08-31"
@@ -564,39 +566,27 @@
                 }
 
                 const statusAnterior = statusAET(aet);
-                Object.assign(aet, data, {
-                    id: aetId,
-                    clienteId: aet.clienteId,
-                    placas: aet.placas || [],
-                    vencimentoData: parseDataBR(data.vencimento.split('-').reverse().join('/')),
-                    carretas: String(data.carretas),
-                    statusManual: true
-                });
-                if (data.status === 'Renovação em andamento') {
-                    aet.renovacaoEm = formatarDataBR(hojeSemHora());
-                } else {
-                    delete aet.renovacaoEm;
-                }
-                if (data.status === 'Renovada') {
-                    aet.renovadaEm = formatarDataBR(hojeSemHora());
-                } else {
-                    delete aet.renovadaEm;
-                }
-                persistirAETs();
-
-                if (statusAnterior !== data.status) {
-                    registrarAlteracaoStatus(aet.id, statusAnterior, data.status);
-                }
-
-                // Mostrar mensagem de sucesso
-                showSuccessMessage(statusAnterior !== data.status
-                    ? 'Status da AET atualizado com sucesso.'
-                    : 'AET atualizada com sucesso!');
-
-                // Redirecionar após 2 segundos
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
+                API.request(`/aets/${aetId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        cliente_id: aet.clienteId,
+                        veiculo_id: aet.veiculo_id,
+                        numero_aet: data.numeroAET,
+                        vencimento: data.vencimento,
+                        uf: data.uf,
+                        status: data.status,
+                        cavalo: data.cavalo,
+                        carretas: data.carretas,
+                        comprimento: data.comprimento,
+                        carroceria: data.carroceria,
+                        observacao: data.observacao
+                    })
+                }).then(() => {
+                    showSuccessMessage(statusAnterior !== data.status
+                        ? 'Status da AET atualizado com sucesso.'
+                        : 'AET atualizada com sucesso!');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                }).catch(error => showSuccessMessage(error.message));
             }
         }
 
@@ -650,6 +640,7 @@
         `;
         document.head.appendChild(style);
     </script>
+    <script src="js/api.js"></script>
     <script src="js/data.js"></script>
 </body>
 </html>

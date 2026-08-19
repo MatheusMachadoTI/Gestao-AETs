@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     atualizarRelatorio();
 });
+document.addEventListener('aet-data-ready', () => {
+    const select = document.getElementById('rel-client');
+    if (select && select.options.length <= 1) preencherClientes();
+    atualizarRelatorio();
+});
 
 function preencherClientes() {
     const select = document.getElementById('rel-client');

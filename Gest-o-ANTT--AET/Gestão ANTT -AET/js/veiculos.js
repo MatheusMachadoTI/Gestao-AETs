@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderVeiculos(headerBusca.value);
     });
 });
+document.addEventListener('aet-data-ready', () => renderVeiculos(document.getElementById('vehicle-search')?.value || ''));
 
 function dadosVeiculos() {
     const veiculos = [];

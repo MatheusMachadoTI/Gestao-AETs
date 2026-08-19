@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFilters();
     setupEventListeners();
 });
+document.addEventListener('aet-data-ready', atualizarDashboard);
 
 // CONFIGURAR EVENT LISTENERS
 function setupEventListeners() {
@@ -437,16 +438,21 @@ function renderTimeline(aetId) {
     const timeline = document.getElementById('timeline');
     if (!timeline) return;
 
-    const eventos = obterHistorico(aetId);
-
-    timeline.innerHTML = eventos.length
-        ? eventos.map(ev => `
+    API.request(`/aets/${aetId}/historico`).then(eventos => {
+        timeline.innerHTML = eventos.length
+            ? eventos.map(ev => `
             <li class="timeline-item">
-                <span class="timeline-date">${escapeHTML(ev.data)}</span>
+                <span class="timeline-date">${escapeHTML(ev.created_at ? new Date(ev.created_at).toLocaleDateString('pt-BR') : ev.data)}</span>
                 <span class="timeline-type">${escapeHTML(ev.tipo)}</span>
                 <div class="timeline-desc">${escapeHTML(ev.descricao)}</div>
             </li>`).join('')
-        : '<li class="timeline-item"><div class="timeline-desc">Nenhum evento registrado.</div></li>';
+            : '<li class="timeline-item"><div class="timeline-desc">Nenhum evento registrado.</div></li>';
+    }).catch(() => {
+        const eventos = obterHistorico(aetId);
+        timeline.innerHTML = eventos.length
+            ? eventos.map(ev => `<li class="timeline-item"><span class="timeline-date">${escapeHTML(ev.data)}</span><span class="timeline-type">${escapeHTML(ev.tipo)}</span><div class="timeline-desc">${escapeHTML(ev.descricao)}</div></li>`).join('')
+            : '<li class="timeline-item"><div class="timeline-desc">Nenhum evento registrado.</div></li>';
+    });
 }
 
 function toggleEventoForm() {
@@ -469,13 +475,13 @@ function salvarEvento() {
     const partes = dataInput.value.split('-');
     const dataBR = formatarDataBR(new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2])));
 
-    adicionarEvento(aetAtual.id, { data: dataBR, tipo, descricao });
-    renderTimeline(aetAtual.id);
-
-    dataInput.value = '';
-    document.getElementById('evento-descricao').value = '';
-    toggleEventoForm();
-    showSuccessMessage('Evento adicionado ao histórico');
+    API.request(`/aets/${aetAtual.id}/historico`, { method: 'POST', body: JSON.stringify({ tipo, descricao, data: dataBR }) }).then(() => {
+        renderTimeline(aetAtual.id);
+        dataInput.value = '';
+        document.getElementById('evento-descricao').value = '';
+        toggleEventoForm();
+        showSuccessMessage('Evento adicionado ao histórico');
+    }).catch(error => showSuccessMessage(error.message));
 }
 
 function atualizarDashboard() {
@@ -486,23 +492,32 @@ function atualizarDashboard() {
 
 function enviarRenovacaoAET(id) {
     if (!confirm('Confirmar envio desta AET para renovação?')) return;
-    enviarParaRenovacao(id);
-    atualizarDashboard();
-    showSuccessMessage('AET enviada para renovação.');
+    API.request(`/aets/${id}/renovacao`, { method: 'POST' }).then(aet => {
+        const index = AETdata.findIndex(item => item.id === Number(id));
+        if (index >= 0) AETdata[index] = API.aetAPIParaTela(aet);
+        atualizarDashboard();
+        showSuccessMessage('AET enviada para renovação.');
+    }).catch(error => showSuccessMessage(error.message));
 }
 
 function marcarRenovada(id) {
     if (!confirm('Confirmar que esta AET foi renovada?')) return;
-    marcarComoRenovada(id);
-    atualizarDashboard();
-    showSuccessMessage('AET marcada como renovada.');
+    API.request(`/aets/${id}/renovada`, { method: 'POST' }).then(aet => {
+        const index = AETdata.findIndex(item => item.id === Number(id));
+        if (index >= 0) AETdata[index] = API.aetAPIParaTela(aet);
+        atualizarDashboard();
+        showSuccessMessage('AET marcada como renovada.');
+    }).catch(error => showSuccessMessage(error.message));
 }
 
 function cancelarRenovacaoAET(id) {
     if (!confirm('Cancelar a renovação desta AET?')) return;
-    cancelarRenovacao(id);
-    atualizarDashboard();
-    showSuccessMessage('Renovação cancelada.');
+    API.request(`/aets/${id}/cancelar-renovacao`, { method: 'POST' }).then(aet => {
+        const index = AETdata.findIndex(item => item.id === Number(id));
+        if (index >= 0) AETdata[index] = API.aetAPIParaTela(aet);
+        atualizarDashboard();
+        showSuccessMessage('Renovação cancelada.');
+    }).catch(error => showSuccessMessage(error.message));
 }
 
 // EDITAR AET
@@ -514,15 +529,14 @@ function editAET(id) {
 // DELETAR AET
 function deleteAET(id) {
     if (confirm('Tem certeza que deseja excluir esta AET?')) {
-        const index = AETdata.findIndex(a => a.id === id);
-        if (index > -1) {
-            AETdata.splice(index, 1);
-            persistirAETs();
+        API.request(`/aets/${id}`, { method: 'DELETE' }).then(() => {
+            const index = AETdata.findIndex(a => a.id === id);
+            if (index > -1) AETdata.splice(index, 1);
             renderCards();
             renderPainelVencimentos();
             applyFilters();
             showSuccessMessage('AET excluída com sucesso');
-        }
+        }).catch(error => showSuccessMessage(error.message));
     }
 }
 

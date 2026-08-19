@@ -335,6 +335,7 @@
         </main>
     </div>
 
+    <script src="js/api.js"></script>
     <script src="js/data.js"></script>
     <script>
         // VALIDAÇÃO DO FORMULÁRIO
@@ -363,37 +364,23 @@
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData);
 
-                const clienteExistente = CLIENTESdata.find(cliente =>
-                    cliente.nome.toLowerCase() === data.cliente.toLowerCase()
-                );
-                const novoId = Math.max(0, ...AETdata.map(aet => aet.id)) + 1;
-                const vencimento = data.vencimento.split('-').reverse().join('/');
-
-                AETdata.push({
-                    id: novoId,
-                    clienteId: clienteExistente ? clienteExistente.id : null,
-                    cliente: data.cliente,
-                    numeroAET: data.numeroAET,
-                    placas: [],
-                    vencimento,
-                    vencimentoData: parseDataBR(vencimento),
-                    status: 'Regular',
-                    uf: data.uf,
-                    cavalo: data.cavalo,
-                    carretas: String(data.carretas),
-                    comprimento: data.comprimento,
-                    carroceria: data.carroceria,
-                    observacao: data.observacao
-                });
-                persistirAETs();
-
-                // Mostrar mensagem de sucesso
-                showSuccessMessage('AET cadastrada com sucesso!');
-
-                // Redirecionar após 2 segundos
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
+                API.request('/aets', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        cliente: data.cliente,
+                        numero_aet: data.numeroAET,
+                        vencimento: data.vencimento,
+                        uf: data.uf,
+                        cavalo: data.cavalo,
+                        carretas: data.carretas,
+                        comprimento: data.comprimento,
+                        carroceria: data.carroceria,
+                        observacao: data.observacao
+                    })
+                }).then(() => {
+                    showSuccessMessage('AET cadastrada com sucesso!');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                }).catch(error => showSuccessMessage(error.message));
             }
         }
 

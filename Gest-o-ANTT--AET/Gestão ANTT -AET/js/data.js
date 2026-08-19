@@ -59,7 +59,7 @@ function salvarAETs() {
     localStorage.setItem(AET_STORAGE_KEY, JSON.stringify(AETdata));
 }
 
-const AETdata = carregarAETs();
+let AETdata = carregarAETs();
 
 function persistirAETs() {
     salvarAETs();
@@ -329,4 +329,14 @@ function escapeHTML(texto) {
     return String(texto == null ? '' : texto)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+if (window.API) {
+    window.API.carregarDadosDaAPI().then(({ clientes, aets }) => {
+        CLIENTESdata.splice(0, CLIENTESdata.length, ...clientes);
+        AETdata.splice(0, AETdata.length, ...aets);
+        document.dispatchEvent(new CustomEvent('aet-data-ready'));
+    }).catch(() => {
+        document.dispatchEvent(new CustomEvent('aet-data-ready'));
+    });
 }

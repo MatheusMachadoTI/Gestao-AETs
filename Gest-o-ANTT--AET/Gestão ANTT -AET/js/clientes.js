@@ -3,6 +3,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     renderClientes();
 
+    const form = document.getElementById('client-form');
+    if (form) form.addEventListener('submit', cadastrarCliente);
+
     const busca = document.getElementById('client-search');
     const buscaHeader = document.getElementById('header-search');
 
@@ -13,6 +16,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 document.addEventListener('aet-data-ready', () => renderClientes(document.getElementById('client-search')?.value));
+
+function mostrarFormularioCliente() {
+    const section = document.getElementById('client-form-section');
+    if (!section) return;
+    section.hidden = false;
+    document.getElementById('client-name')?.focus();
+}
+
+function ocultarFormularioCliente() {
+    const section = document.getElementById('client-form-section');
+    const form = document.getElementById('client-form');
+    if (section) section.hidden = true;
+    if (form) form.reset();
+}
+
+async function cadastrarCliente(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const dados = Object.fromEntries(new FormData(form).entries());
+
+    submitButton.disabled = true;
+    try {
+        const cliente = await API.request('/clientes', {
+            method: 'POST',
+            body: JSON.stringify(dados)
+        });
+        CLIENTESdata.push(cliente);
+        renderClientes(document.getElementById('client-search')?.value);
+        ocultarFormularioCliente();
+        alert('Cliente cadastrado com sucesso.');
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        submitButton.disabled = false;
+    }
+}
 
 // Resumo das AETs de um cliente
 function resumoCliente(clienteId) {

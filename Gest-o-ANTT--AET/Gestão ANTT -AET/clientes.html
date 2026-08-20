@@ -89,14 +89,48 @@
                         <h1>Clientes</h1>
                         <p class="page-subtitle">Clientes cadastrados e suas AETs</p>
                     </div>
-                    <button class="btn btn-primary" onclick="window.location.href='cadastrar.html'">
+                    <button class="btn btn-primary" type="button" onclick="mostrarFormularioCliente()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        Cadastrar nova AET
+                        Cadastrar cliente
                     </button>
                 </div>
+
+                <section id="client-form-section" class="table-section" hidden>
+                    <h2>Novo cliente</h2>
+                    <form id="client-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="client-name">Nome / Razão Social *</label>
+                                <input id="client-name" name="nome" type="text" required maxlength="180">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-document">CPF/CNPJ</label>
+                                <input id="client-document" name="documento" type="text" maxlength="30">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="client-phone">Telefone</label>
+                                <input id="client-phone" name="telefone" type="text" maxlength="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-email">E-mail</label>
+                                <input id="client-email" name="email" type="email" maxlength="160">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-notes">Observação</label>
+                            <textarea id="client-notes" name="observacao" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" type="button" onclick="ocultarFormularioCliente()">Cancelar</button>
+                            <button class="btn btn-primary" type="submit">Salvar cliente</button>
+                        </div>
+                    </form>
+                </section>
 
                 <div class="table-section">
                     <h2>Todos os clientes</h2>

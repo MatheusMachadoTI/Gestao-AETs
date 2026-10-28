@@ -11,8 +11,6 @@ let calendarioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
 // INICIALIZAR PÁGINA
 document.addEventListener('DOMContentLoaded', () => {
-    renderCards();
-    renderPainelVencimentos();
     renderCalendario();
     applyFilters();
     setupEventListeners();
@@ -136,32 +134,30 @@ function mostrarAETsNaData(data, aets) {
         </article>`).join('')}</div>`;
 }
 
-// CARDS DE RESUMO (calculados a partir dos dados)
-function renderCards() {
-    const s = contarStatus();
+// Indicadores carregados do endpoint de dashboard
+function renderCards(s) {
     const set = (id, valor) => {
         const el = document.getElementById(id);
         if (el) el.textContent = valor;
     };
     set('card-total', s.total);
-    set('card-regular', s.regular);
-    set('card-attention', s.atencao + s.alta);
-    set('card-expired', s.vencida);
-    set('card-renewal', s.renovacao);
-    set('card-renewed', s.renovada);
+    set('card-regular', s.regulares);
+    set('card-attention', s.atencao + s.alta_prioridade);
+    set('card-expired', s.vencidas);
+    set('card-renewal', s.renovacao_em_andamento);
+    set('card-renewed', s.renovadas);
 }
 
 // PAINEL DE VENCIMENTOS
-function renderPainelVencimentos() {
-    const c = contarCategorias();
+function renderPainelVencimentos(s) {
     const set = (id, valor) => {
         const el = document.getElementById(id);
         if (el) el.textContent = valor;
     };
-    set('alert-vencidas', c.vencidas);
-    set('alert-hoje', c.hoje);
-    set('alert-7dias', c['7dias']);
-    set('alert-30dias', c['30dias']);
+    set('alert-vencidas', s.vencidas);
+    set('alert-hoje', s.vencendo_hoje);
+    set('alert-7dias', Math.max(0, s.vencendo_7_dias - s.vencendo_hoje));
+    set('alert-30dias', Math.max(0, s.vencendo_30_dias - s.vencendo_7_dias));
 }
 
 // Clique nas categorias do painel filtra a tabela
@@ -442,16 +438,13 @@ function renderTimeline(aetId) {
         timeline.innerHTML = eventos.length
             ? eventos.map(ev => `
             <li class="timeline-item">
-                <span class="timeline-date">${escapeHTML(ev.created_at ? new Date(ev.created_at).toLocaleDateString('pt-BR') : ev.data)}</span>
+                <span class="timeline-date">${escapeHTML(dataAPIParaTela(ev.created_at))}</span>
                 <span class="timeline-type">${escapeHTML(ev.tipo)}</span>
                 <div class="timeline-desc">${escapeHTML(ev.descricao)}</div>
             </li>`).join('')
             : '<li class="timeline-item"><div class="timeline-desc">Nenhum evento registrado.</div></li>';
-    }).catch(() => {
-        const eventos = obterHistorico(aetId);
-        timeline.innerHTML = eventos.length
-            ? eventos.map(ev => `<li class="timeline-item"><span class="timeline-date">${escapeHTML(ev.data)}</span><span class="timeline-type">${escapeHTML(ev.tipo)}</span><div class="timeline-desc">${escapeHTML(ev.descricao)}</div></li>`).join('')
-            : '<li class="timeline-item"><div class="timeline-desc">Nenhum evento registrado.</div></li>';
+    }).catch(error => {
+        timeline.innerHTML = `<li class="timeline-item"><div class="timeline-desc">${escapeHTML(`Não foi possível carregar o histórico: ${error.message}`)}</div></li>`;
     });
 }
 
@@ -481,12 +474,18 @@ function salvarEvento() {
         document.getElementById('evento-descricao').value = '';
         toggleEventoForm();
         showSuccessMessage('Evento adicionado ao histórico');
-    }).catch(error => showSuccessMessage(error.message));
+    }).catch(error => showErrorMessage(error.message));
 }
 
-function atualizarDashboard() {
-    renderCards();
-    renderPainelVencimentos();
+async function atualizarDashboard() {
+    try {
+        const resumo = await API.request('/dashboard');
+        renderCards(resumo);
+        renderPainelVencimentos(resumo);
+    } catch (error) {
+        showErrorMessage(`Não foi possível carregar os indicadores do dashboard: ${error.message}`);
+    }
+    renderCalendario();
     applyFilters();
 }
 
@@ -497,7 +496,7 @@ function enviarRenovacaoAET(id) {
         if (index >= 0) AETdata[index] = API.aetAPIParaTela(aet);
         atualizarDashboard();
         showSuccessMessage('AET enviada para renovação.');
-    }).catch(error => showSuccessMessage(error.message));
+    }).catch(error => showErrorMessage(error.message));
 }
 
 function marcarRenovada(id) {
@@ -507,7 +506,7 @@ function marcarRenovada(id) {
         if (index >= 0) AETdata[index] = API.aetAPIParaTela(aet);
         atualizarDashboard();
         showSuccessMessage('AET marcada como renovada.');
-    }).catch(error => showSuccessMessage(error.message));
+    }).catch(error => showErrorMessage(error.message));
 }
 
 function cancelarRenovacaoAET(id) {
@@ -517,7 +516,7 @@ function cancelarRenovacaoAET(id) {
         if (index >= 0) AETdata[index] = API.aetAPIParaTela(aet);
         atualizarDashboard();
         showSuccessMessage('Renovação cancelada.');
-    }).catch(error => showSuccessMessage(error.message));
+    }).catch(error => showErrorMessage(error.message));
 }
 
 // EDITAR AET
@@ -528,15 +527,13 @@ function editAET(id) {
 
 // DELETAR AET
 function deleteAET(id) {
-    if (confirm('Tem certeza que deseja excluir esta AET?')) {
+    if (confirm('Excluir esta AET e todo o histórico associado? Esta ação não pode ser desfeita.')) {
         API.request(`/aets/${id}`, { method: 'DELETE' }).then(() => {
-            const index = AETdata.findIndex(a => a.id === id);
+            const index = AETdata.findIndex(a => Number(a.id) === Number(id));
             if (index > -1) AETdata.splice(index, 1);
-            renderCards();
-            renderPainelVencimentos();
-            applyFilters();
+            atualizarDashboard();
             showSuccessMessage('AET excluída com sucesso');
-        }).catch(error => showSuccessMessage(error.message));
+        }).catch(error => showErrorMessage(error.message));
     }
 }
 
@@ -558,13 +555,21 @@ window.addEventListener('click', (e) => {
 
 // MENSAGEM DE SUCESSO
 function showSuccessMessage(message) {
+    showToast(message, '#22A559');
+}
+
+function showErrorMessage(message) {
+    showToast(message, '#B42318');
+}
+
+function showToast(message, color) {
     const messageEl = document.createElement('div');
 
     messageEl.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background-color: #22A559;
+        background-color: ${color};
         color: white;
         padding: 16px 24px;
         border-radius: 8px;

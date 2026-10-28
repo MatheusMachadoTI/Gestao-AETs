@@ -17,9 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 document.addEventListener('aet-data-ready', () => renderClientes(document.getElementById('client-search')?.value));
 
+let clienteEmEdicao = null;
+
 function mostrarFormularioCliente() {
     const section = document.getElementById('client-form-section');
     if (!section) return;
+    clienteEmEdicao = null;
+    document.getElementById('client-form')?.reset();
+    section.querySelector('h2').textContent = 'Novo cliente';
+    section.querySelector('button[type="submit"]').textContent = 'Salvar cliente';
     section.hidden = false;
     document.getElementById('client-name')?.focus();
 }
@@ -29,6 +35,7 @@ function ocultarFormularioCliente() {
     const form = document.getElementById('client-form');
     if (section) section.hidden = true;
     if (form) form.reset();
+    clienteEmEdicao = null;
 }
 
 async function cadastrarCliente(event) {
@@ -36,21 +43,55 @@ async function cadastrarCliente(event) {
     const form = event.currentTarget;
     const submitButton = form.querySelector('button[type="submit"]');
     const dados = Object.fromEntries(new FormData(form).entries());
+    const editing = clienteEmEdicao !== null;
 
     submitButton.disabled = true;
     try {
-        const cliente = await API.request('/clientes', {
-            method: 'POST',
+        const cliente = await API.request(editing ? `/clientes/${clienteEmEdicao}` : '/clientes', {
+            method: editing ? 'PUT' : 'POST',
             body: JSON.stringify(dados)
         });
-        CLIENTESdata.push(cliente);
+        const index = CLIENTESdata.findIndex(item => Number(item.id) === Number(cliente.id));
+        if (index >= 0) CLIENTESdata[index] = cliente;
+        else CLIENTESdata.push(cliente);
         renderClientes(document.getElementById('client-search')?.value);
         ocultarFormularioCliente();
-        alert('Cliente cadastrado com sucesso.');
+        alert(editing ? 'Cliente atualizado com sucesso.' : 'Cliente cadastrado com sucesso.');
     } catch (error) {
         alert(error.message);
     } finally {
         submitButton.disabled = false;
+    }
+}
+
+function editarCliente(clienteId) {
+    const cliente = CLIENTESdata.find(item => Number(item.id) === Number(clienteId));
+    if (!cliente) return;
+    clienteEmEdicao = Number(cliente.id);
+    const section = document.getElementById('client-form-section');
+    const form = document.getElementById('client-form');
+    form.elements.nome.value = cliente.nome || '';
+    form.elements.documento.value = cliente.documento || '';
+    form.elements.telefone.value = cliente.telefone || '';
+    form.elements.email.value = cliente.email || '';
+    form.elements.observacao.value = cliente.observacao || '';
+    section.querySelector('h2').textContent = 'Editar cliente';
+    section.querySelector('button[type="submit"]').textContent = 'Salvar alterações';
+    section.hidden = false;
+    document.getElementById('client-name').focus();
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function excluirCliente(clienteId) {
+    const cliente = CLIENTESdata.find(item => Number(item.id) === Number(clienteId));
+    if (!cliente || !confirm(`Excluir o cliente "${cliente.nome}"? Clientes com veículos ou AETs vinculados não podem ser excluídos.`)) return;
+    try {
+        await API.request(`/clientes/${clienteId}`, { method: 'DELETE' });
+        CLIENTESdata = CLIENTESdata.filter(item => Number(item.id) !== Number(clienteId));
+        renderClientes(document.getElementById('client-search')?.value);
+        alert('Cliente excluído com sucesso.');
+    } catch (error) {
+        alert(error.message);
     }
 }
 
@@ -76,10 +117,10 @@ function renderClientes(termo) {
 
     const lista = CLIENTESdata.filter(c =>
         !busca ||
-        c.nome.toLowerCase().includes(busca) ||
-        c.documento.toLowerCase().includes(busca) ||
-        c.email.toLowerCase().includes(busca) ||
-        c.telefone.toLowerCase().includes(busca)
+        String(c.nome || '').toLowerCase().includes(busca) ||
+        String(c.documento || '').toLowerCase().includes(busca) ||
+        String(c.email || '').toLowerCase().includes(busca) ||
+        String(c.telefone || '').toLowerCase().includes(busca)
     );
 
     if (lista.length === 0) {
@@ -107,6 +148,12 @@ function renderClientes(termo) {
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
                         </svg>
+                    </button>
+                    <button class="action-btn tooltip" data-tooltip="Editar cliente" onclick="editarCliente(${c.id})" aria-label="Editar cliente">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="action-btn delete tooltip" data-tooltip="Excluir cliente" onclick="excluirCliente(${c.id})" aria-label="Excluir cliente">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                 </div>
             </td>
@@ -148,9 +195,9 @@ function verCliente(clienteId) {
 
     body.innerHTML = `
         ${linha('Nome / Razão Social', escapeHTML(cliente.nome))}
-        ${linha('CPF/CNPJ', escapeHTML(cliente.documento))}
-        ${linha('Telefone', escapeHTML(cliente.telefone))}
-        ${linha('E-mail', escapeHTML(cliente.email))}
+        ${linha('CPF/CNPJ', escapeHTML(cliente.documento || ''))}
+        ${linha('Telefone', escapeHTML(cliente.telefone || ''))}
+        ${linha('E-mail', escapeHTML(cliente.email || ''))}
 
         <div class="client-detail-grid" style="margin-top:20px;">
             ${stat('Total de AETs', r.total)}

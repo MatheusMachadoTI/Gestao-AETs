@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS veiculos (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_veiculo_placa_cliente (cliente_id, placa),
-    CONSTRAINT fk_veiculo_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+    CONSTRAINT fk_veiculo_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS aets (
@@ -79,5 +79,13 @@ INSERT IGNORE INTO aets (id, cliente_id, veiculo_id, numero_aet, vencimento, uf,
 (4, 4, 4, 'AET-FICT-004', '2026-09-10', 'GO', 'Renovação em andamento', 'Em renovação', 'Registro fictício para demonstração'),
 (5, 5, 5, 'AET-FICT-005', '2026-10-10', 'SP', 'Renovada', 'Resolvida', 'Registro fictício para demonstração');
 
-INSERT IGNORE INTO historico (aet_id, tipo, descricao, status_novo)
-SELECT id, 'Cadastro', 'AET cadastrada', status FROM aets;
+INSERT INTO historico (aet_id, tipo, descricao, status_novo)
+SELECT a.id, 'Cadastro', 'AET cadastrada', a.status
+FROM aets a
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM historico h
+    WHERE h.aet_id = a.id
+      AND h.tipo = 'Cadastro'
+      AND h.descricao = 'AET cadastrada'
+);

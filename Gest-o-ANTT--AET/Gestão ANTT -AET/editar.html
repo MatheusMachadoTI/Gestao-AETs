@@ -276,6 +276,14 @@
                             </div>
                         </div>
 
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="placa" class="required">Placa</label>
+                                <input type="text" id="placa" name="placa" maxlength="20" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
                         <!-- COMPRIMENTO E CARROCERIA -->
                         <div class="form-group form-row">
                             <div>
@@ -317,6 +325,21 @@
                                     <option value="Renovação em andamento">Renovação em andamento</option>
                                     <option value="Renovada">Renovada</option>
                                     <option value="Vencida">Vencida</option>
+                                </select>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="prioridade" class="required">Prioridade</label>
+                                <select id="prioridade" name="prioridade" required>
+                                    <option value="Urgente">Urgente</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Média">Média</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Em renovação">Em renovação</option>
+                                    <option value="Resolvida">Resolvida</option>
                                 </select>
                                 <div class="form-error">Campo obrigatório</div>
                             </div>
@@ -506,25 +529,33 @@
         ]; */
 
         // CARREGAR DADOS NA PÁGINA
-        function carregarFormularioEdicao() {
-            const editAETId = localStorage.getItem('editAETId') || 1;
-            const aet = AETdata.find(a => a.id === parseInt(editAETId));
+        function carregarFormularioEdicao(dadosCarregados = false) {
+            const editAETId = localStorage.getItem('editAETId');
+            if (!editAETId) {
+                if (dadosCarregados) showErrorMessage('Selecione uma AET para editar.');
+                return;
+            }
+            const aet = AETdata.find(a => Number(a.id) === Number(editAETId));
 
             if (aet) {
                 document.getElementById('cliente').value = aet.cliente;
                 document.getElementById('uf').value = aet.uf;
                 document.getElementById('vencimento').value = formatDateToInput(aet.vencimento);
                 document.getElementById('cavalo').value = aet.cavalo;
+                document.getElementById('placa').value = aet.placas?.[0] || aet.placa || '';
                 document.getElementById('carretas').value = aet.carretas;
                 document.getElementById('comprimento').value = aet.comprimento;
                 document.getElementById('carroceria').value = aet.carroceria;
                 document.getElementById('numeroAET').value = aet.numeroAET;
                 document.getElementById('status').value = statusAET(aet);
+                document.getElementById('prioridade').value = prioridadeAET(aet);
                 document.getElementById('observacao').value = aet.observacao;
+            } else if (dadosCarregados) {
+                showErrorMessage('AET não encontrada no banco de dados. Volte à listagem e tente novamente.');
             }
         }
         document.addEventListener('DOMContentLoaded', carregarFormularioEdicao);
-        document.addEventListener('aet-data-ready', carregarFormularioEdicao);
+        document.addEventListener('aet-data-ready', () => carregarFormularioEdicao(true));
 
         function formatDateToInput(dateStr) {
             // Converte "31/08/2026" para "2026-08-31"
@@ -561,7 +592,7 @@
                 const aetId = Number(localStorage.getItem('editAETId'));
                 const aet = AETdata.find(item => item.id === aetId);
                 if (!aet) {
-                    showSuccessMessage('AET não encontrada.');
+                    showErrorMessage('AET não encontrada.');
                     return;
                 }
 
@@ -571,10 +602,13 @@
                     body: JSON.stringify({
                         cliente_id: aet.clienteId,
                         veiculo_id: aet.veiculo_id,
+                        cliente: data.cliente,
+                        placa: data.placa,
                         numero_aet: data.numeroAET,
                         vencimento: data.vencimento,
                         uf: data.uf,
                         status: data.status,
+                        prioridade: data.prioridade,
                         cavalo: data.cavalo,
                         carretas: data.carretas,
                         comprimento: data.comprimento,
@@ -586,17 +620,25 @@
                         ? 'Status da AET atualizado com sucesso.'
                         : 'AET atualizada com sucesso!');
                     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-                }).catch(error => showSuccessMessage(error.message));
+                }).catch(error => showErrorMessage(error.message));
             }
         }
 
         function showSuccessMessage(message) {
+            showMessage(message, '#22A559');
+        }
+
+        function showErrorMessage(message) {
+            showMessage(message, '#B42318');
+        }
+
+        function showMessage(message, color) {
             const messageEl = document.createElement('div');
             messageEl.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background-color: #22A559;
+                background-color: ${color};
                 color: white;
                 padding: 16px 24px;
                 border-radius: 8px;

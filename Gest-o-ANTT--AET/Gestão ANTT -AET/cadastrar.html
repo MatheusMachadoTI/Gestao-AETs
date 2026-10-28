@@ -276,6 +276,14 @@
                             </div>
                         </div>
 
+                        <div class="form-group form-row full">
+                            <div>
+                                <label for="placa" class="required">Placa</label>
+                                <input type="text" id="placa" name="placa" placeholder="Ex: ABC1D23" maxlength="20" required>
+                                <div class="form-error">Campo obrigatório</div>
+                            </div>
+                        </div>
+
                         <!-- COMPRIMENTO E CARROCERIA -->
                         <div class="form-group form-row">
                             <div>
@@ -371,6 +379,7 @@
                         numero_aet: data.numeroAET,
                         vencimento: data.vencimento,
                         uf: data.uf,
+                        placa: data.placa,
                         cavalo: data.cavalo,
                         carretas: data.carretas,
                         comprimento: data.comprimento,
@@ -380,17 +389,25 @@
                 }).then(() => {
                     showSuccessMessage('AET cadastrada com sucesso!');
                     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-                }).catch(error => showSuccessMessage(error.message));
+                }).catch(error => showErrorMessage(error.message));
             }
         }
 
         function showSuccessMessage(message) {
+            showMessage(message, '#22A559');
+        }
+
+        function showErrorMessage(message) {
+            showMessage(message, '#B42318');
+        }
+
+        function showMessage(message, color) {
             const messageEl = document.createElement('div');
             messageEl.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background-color: #22A559;
+                background-color: ${color};
                 color: white;
                 padding: 16px 24px;
                 border-radius: 8px;

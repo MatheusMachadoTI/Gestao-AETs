@@ -5,7 +5,12 @@ function apiRequest(path, options = {}) {
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         ...options
     }).then(async response => {
-        const payload = await response.json().catch(() => ({}));
+        let payload;
+        try {
+            payload = await response.json();
+        } catch {
+            throw new Error('A API retornou uma resposta inválida.');
+        }
         if (!response.ok || payload.success === false) throw new Error(payload.message || 'Erro na comunicação com a API');
         return payload.data === undefined ? payload : payload.data;
     });
@@ -23,6 +28,7 @@ function aetAPIParaTela(aet) {
         cliente: aet.cliente || '',
         numeroAET: aet.numero_aet || aet.numeroAET,
         placas: aet.placas || (aet.placa ? [aet.placa] : []),
+        veiculo_id: aet.veiculo_id || aet.veiculoId,
         statusManual: true,
         vencimento: dataAPIParaTela(aet.vencimento),
         vencimentoData: parseDataBR(dataAPIParaTela(aet.vencimento)),
@@ -31,8 +37,12 @@ function aetAPIParaTela(aet) {
 }
 
 async function carregarDadosDaAPI() {
-    const [clientes, aets] = await Promise.all([apiRequest('/clientes'), apiRequest('/aets')]);
-    return { clientes, aets: aets.map(aetAPIParaTela) };
+    const [clientes, aets, veiculos] = await Promise.all([
+        apiRequest('/clientes'),
+        apiRequest('/aets'),
+        apiRequest('/veiculos')
+    ]);
+    return { clientes, aets: aets.map(aetAPIParaTela), veiculos };
 }
 
 window.API = { request: apiRequest, carregarDadosDaAPI, aetAPIParaTela, dataAPIParaTela };
